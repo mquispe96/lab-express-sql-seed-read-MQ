@@ -33,4 +33,27 @@ const createSong = async song => {
   }
 };
 
-module.exports = {getAllSongs, getSongById, createSong};
+const updateSong = async (id, song) => {
+  const keys = Object.keys(song);
+  const dbKeys = keys.filter(key => song[key]);
+  const dbValues = dbKeys.map((key, idx) => `${key} = $${idx + 2}`).join(', ');
+  try {
+    const updatedSong = await db.one(
+      `UPDATE songs SET ${dbValues} WHERE id = $1 RETURNING *`,
+      [id, ...dbKeys.map(key => song[key])]);
+    return updatedSong;
+  } catch (error) {
+    return error;
+  }
+}
+
+const deleteSong = async id => {
+  try {
+    const deletedSong = await db.one('DELETE FROM songs WHERE id = $1 RETURNING *', id);
+    return deletedSong;
+  } catch (error) {
+    return error;
+  }
+}
+
+module.exports = {getAllSongs, getSongById, createSong, updateSong, deleteSong};
